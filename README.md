@@ -1,6 +1,6 @@
 # 📚 Gram Tutor - Ultimate English Grammar PWA
 
-**Version 1.1.0** · Developed by **Tasmon Islam** · tasmon@outlook.com
+**Version 1.1.0**
 
 The complete all-in-one English grammar learning Progressive Web App.
 
