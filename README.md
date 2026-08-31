@@ -1,8 +1,11 @@
 # 📚 Gram Tutor - Ultimate English Grammar PWA
 
-**Version 1.1.0**
+**Version 1.2.0**
 
 The complete all-in-one English grammar learning Progressive Web App.
+
+<img width="809" height="914" alt="image" src="https://github.com/user-attachments/assets/ad5c1691-4974-4941-ad83-3017578e1667" />
+
 
 ## What's inside
 
