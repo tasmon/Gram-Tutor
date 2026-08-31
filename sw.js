@@ -1,4 +1,4 @@
-const CACHE = 'gram-tutor-v1.1.0';
+const CACHE = 'gramify-v1.3.0';
 const ASSETS = ['./','./index.html','./css/styles.css','./js/app.js','./js/data.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

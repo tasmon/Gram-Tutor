@@ -1,32 +1,21 @@
-# 📚 Gram Tutor - Ultimate English Grammar PWA
+# Gramify
 
-**Version 1.2.0**
+English grammar lessons and practice - version 1.3.0
 
-The complete all-in-one English grammar learning Progressive Web App.
+**Built by** Tasmon Islam · tasmon@outlook.com
 
-<img width="809" height="914" alt="image" src="https://github.com/user-attachments/assets/ad5c1691-4974-4941-ad83-3017578e1667" />
+## Features
 
+- 39 lessons with examples and quizzes
+- Quick, longer, and hard quizzes
+- Word order, fill-the-gap, and error-fix games
+- Irregular verbs, glossary, flashcards
+- XP, streaks, badges, saved progress
+- Themes: Light, Dark, Ocean, Forest, Sunset, Lavender, Slate
+- First-launch name + short tour
+- Works offline as a PWA
 
-## What's inside
-
-- **35 full lessons** across Basics, Tenses, Parts of Speech, Sentences, Advanced, Common Errors, Usage
-- **Quick Quiz, Mega Challenge, Daily Challenge**
-- **Games:** Sentence Scramble, Fill-in-the-Blank, Error Clinic
-- **Tools:** 75 irregular verbs table, grammar glossary, flashcards
-- **XP, levels, streaks, badges**, progress tracking (localStorage)
-- **Dark / Light theme**, fully responsive (mobile + desktop)
-- **Offline PWA** (service worker + manifest)
-
-## Deploy to Vercel
-
-```bash
-cd gram-tutor
-npx vercel
-```
-
-Or import the folder/repo on vercel.com (static, no build).
-
-## Local preview
+## Run locally
 
 ```bash
 npx serve .
@@ -34,8 +23,6 @@ npx serve .
 python3 -m http.server 3000
 ```
 
-**Important:** Serve over HTTP (or deploy). Do not open `index.html` as a `file://` URL.
+## Deploy on Vercel
 
-## Stack
-
-Vanilla HTML/CSS/JS · Relative paths · Event delegation · localStorage
+Import this folder or run `npx vercel`.
