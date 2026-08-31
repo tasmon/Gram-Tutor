@@ -9,8 +9,7 @@ The complete all-in-one English grammar learning Progressive Web App.
 
 ## What's inside
 
-- **33 full lessons** across Basics, Tenses, Parts of Speech, Sentences, Advanced, Common Errors, Usage
-- **114+ quiz questions** (lesson quizzes + mixed bank)
+- **35 full lessons** across Basics, Tenses, Parts of Speech, Sentences, Advanced, Common Errors, Usage
 - **Quick Quiz, Mega Challenge, Daily Challenge**
 - **Games:** Sentence Scramble, Fill-in-the-Blank, Error Clinic
 - **Tools:** 75 irregular verbs table, grammar glossary, flashcards
