@@ -2,7 +2,8 @@
 
 English grammar lessons and practice - version 1.3.0
 
-**Built by** Tasmon Islam · tasmon@outlook.com
+<img width="797" height="906" alt="image" src="https://github.com/user-attachments/assets/ede010f2-41c5-4c1f-b4e1-cfb1a7d106df" />
+
 
 ## Features
 
@@ -12,7 +13,6 @@ English grammar lessons and practice - version 1.3.0
 - Irregular verbs, glossary, flashcards
 - XP, streaks, badges, saved progress
 - Themes: Light, Dark, Ocean, Forest, Sunset, Lavender, Slate
-- First-launch name + short tour
 - Works offline as a PWA
 
 ## Run locally
@@ -22,7 +22,3 @@ npx serve .
 # or
 python3 -m http.server 3000
 ```
-
-## Deploy on Vercel
-
-Import this folder or run `npx vercel`.
