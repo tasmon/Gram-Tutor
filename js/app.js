@@ -1,4 +1,4 @@
-/* Gram Tutor App v1.2.0 */
+/* Gramify App v1.3.0 */
 (function () {
   "use strict";
 
@@ -19,7 +19,7 @@
 
   function loadProgress() {
     try {
-      const r = localStorage.getItem("gramTutor_v2");
+      const r = localStorage.getItem("gramify_v2");
       if (r) return JSON.parse(r);
     } catch (e) {}
     return {
@@ -37,7 +37,7 @@
   }
 
   function save() {
-    localStorage.setItem("gramTutor_v2", JSON.stringify(state.progress));
+    localStorage.setItem("gramify_v2", JSON.stringify(state.progress));
     updateXP();
   }
 
@@ -76,12 +76,12 @@
   }
 
   function getUserName() {
-    return (localStorage.getItem("gramTutorName") || "").trim();
+    return (localStorage.getItem("gramifyName") || "").trim();
   }
 
   function setUserName(name) {
     name = String(name || "").trim().slice(0, 40);
-    if (name) localStorage.setItem("gramTutorName", name);
+    if (name) localStorage.setItem("gramifyName", name);
     return name;
   }
 
@@ -113,18 +113,41 @@
   }
 
   /* ---------- Theme ---------- */
+  const THEMES = [
+    { id: "light", icon: "☀️", label: "Light" },
+    { id: "dark", icon: "🌙", label: "Dark" },
+    { id: "ocean", icon: "🌊", label: "Ocean" },
+    { id: "forest", icon: "🌿", label: "Forest" },
+    { id: "sunset", icon: "🌅", label: "Sunset" },
+    { id: "lavender", icon: "💜", label: "Lavender" },
+    { id: "slate", icon: "⬜", label: "Slate" }
+  ];
+
+  function themeMeta(id) {
+    return THEMES.find(function (x) { return x.id === id; }) || THEMES[0];
+  }
+
   function initTheme() {
-    const th = localStorage.getItem("gramTutorTheme") || "light";
+    const th = localStorage.getItem("gramifyTheme") || "light";
     document.documentElement.setAttribute("data-theme", th);
     const btn = $("#themeBtn");
-    if (btn) btn.textContent = th === "dark" ? "☀️" : "🌙";
+    if (btn) {
+      btn.textContent = themeMeta(th).icon;
+      btn.title = "Theme: " + themeMeta(th).label + " (tap to change)";
+    }
   }
   function toggleTheme() {
-    const cur = document.documentElement.getAttribute("data-theme") || "dark";
-    const next = cur === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("gramTutorTheme", next);
-    $("#themeBtn").textContent = next === "dark" ? "☀️" : "🌙";
+    const cur = document.documentElement.getAttribute("data-theme") || "light";
+    const idx = THEMES.findIndex(function (x) { return x.id === cur; });
+    const next = THEMES[(idx + 1) % THEMES.length];
+    document.documentElement.setAttribute("data-theme", next.id);
+    localStorage.setItem("gramifyTheme", next.id);
+    const btn = $("#themeBtn");
+    if (btn) {
+      btn.textContent = next.icon;
+      btn.title = "Theme: " + next.label + " (tap to change)";
+    }
+    toast("Theme: " + next.label);
   }
 
   /* ---------- Navigation ---------- */
@@ -339,10 +362,11 @@
       [
         ["quick-quiz", "⚡", "#3b5bdb", "Quick quiz", "10 mixed questions"],
         ["mixed-quiz", "🎲", "#7048e8", "Longer quiz", "20 questions from the full bank"],
+        ["hard-quiz", "🔥", "#e03131", "Hard quiz", "Challenging B2-C1 questions"],
         ["daily", "📅", "#e67700", "Today's five", "A short set for today"],
         ["game-scramble", "🔤", "#0c8599", "Word order", "Put the words in the right order"],
         ["game-fill", "✍️", "#2f9e44", "Fill the gap", "Type the missing form"],
-        ["game-error", "🔧", "#e03131", "Fix the sentence", "Correct the mistake"],
+        ["game-error", "🔧", "#c92a2a", "Fix the sentence", "Correct the mistake"],
       ]
         .map(
           (x) =>
@@ -755,11 +779,12 @@
     return (
       '<div class="view"><div class="card text-center" style="max-width:480px;margin:0 auto">' +
       '<div class="logo-mark" style="width:64px;height:64px;font-size:1.8rem;margin:0 auto 1rem">G</div>' +
-      "<h1>Gram Tutor</h1>" +
+      "<h1>Gramify</h1>" +
       '<p class="muted mb-2">English grammar lessons and practice</p>' +
       "<p>Lessons, quizzes, games, irregular verbs, a glossary, and flashcards. Progress is saved on this device.</p>" +
+      '<p class="muted mt-1" style="font-size:.85rem">Tap the palette icon to try different themes.</p>' +
       '<p class="mt-2" style="display:inline-block;padding:.3rem .8rem;background:var(--elev);border-radius:99px;font-size:.85rem" class="muted">Version ' +
-      (window.APP_VERSION || "1.1.0") +
+      (window.APP_VERSION || "1.3.0") +
       "</p>" +
       '<hr style="border:none;border-top:1px solid var(--line);margin:1.25rem 0" />' +
       "<p><strong>Built by</strong><br>" +
@@ -945,6 +970,11 @@
       case "mixed-quiz":
         startQuiz((window.QUICK_QUIZZES || []).slice(0, 20), "mixed");
         break;
+      case "hard-quiz": {
+        const hard = (window.HARD_QUIZZES || window.QUICK_QUIZZES || []).slice();
+        startQuiz(hard.sort(function(){return Math.random()-0.5}).slice(0, 15), "hard");
+        break;
+      }
       case "daily": {
         const day = new Date().toDateString();
         const seed = day.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -972,6 +1002,7 @@
       case "retry-quiz":
         if (state.quiz.mode === "quick") onAction("quick-quiz", el);
         else if (state.quiz.mode === "mixed") onAction("mixed-quiz", el);
+        else if (state.quiz.mode === "hard") onAction("hard-quiz", el);
         else if (state.quiz.mode === "daily") onAction("daily", el);
         else if (String(state.quiz.mode).startsWith("lesson:")) {
           const id = state.quiz.mode.split(":")[1];
@@ -1067,7 +1098,7 @@
             setUserName(next);
             toast("Got it - hello, " + next.trim());
           } else {
-            localStorage.removeItem("gramTutorName");
+            localStorage.removeItem("gramifyName");
             toast("Name cleared");
           }
           render();
@@ -1146,7 +1177,7 @@
       if (v && v.trim()) setUserName(v);
       ov.remove();
       render();
-      if (!localStorage.getItem("gramTutorTourDone")) {
+      if (!localStorage.getItem("gramifyTourDone")) {
         tourStep = 0;
         setTimeout(showTour, 300);
       }
@@ -1197,7 +1228,7 @@
     };
   }
   function endTour() {
-    localStorage.setItem("gramTutorTourDone", "1");
+    localStorage.setItem("gramifyTourDone", "1");
     const ov = document.getElementById("tourOverlay");
     if (ov) ov.remove();
   }
@@ -1205,8 +1236,15 @@
   function init() {
     if (!window.LESSONS) {
       $("#main").innerHTML =
-        '<div class="empty"><div class="e">⚠️</div><p>Failed to load data.js. Serve the app via a local server or deploy to Vercel (do not open index.html as a file).</p></div>';
+        '<div class="empty"><div class="e">⚠️</div><p>Failed to load data.js. Please open the app through a local server or your hosted URL.</p></div>';
       return;
+    }
+    if (window.EXTRA_LESSONS && window.EXTRA_LESSONS.length) {
+      var ids = {};
+      window.LESSONS.forEach(function (l) { ids[l.id] = true; });
+      window.EXTRA_LESSONS.forEach(function (l) {
+        if (!ids[l.id]) window.LESSONS.push(l);
+      });
     }
     state.progress = loadProgress();
     touchStreak();
@@ -1216,7 +1254,7 @@
     render();
     if (!getUserName()) {
       setTimeout(showNamePrompt, 350);
-    } else if (!localStorage.getItem("gramTutorTourDone")) {
+    } else if (!localStorage.getItem("gramifyTourDone")) {
       tourStep = 0;
       setTimeout(showTour, 400);
     }
