@@ -1,7 +1,7 @@
 {
-  "name": "Gramify - English Grammar Practice",
-  "short_name": "Gramify",
-  "description": "English grammar lessons, quizzes, and practice tools.",
+  "name": "My Gramify - English Grammar Practice",
+  "short_name": "My Gramify",
+  "description": "English grammar lessons, adaptive quizzes from a 50,000-question bank, and practice games.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
