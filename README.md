@@ -2,7 +2,8 @@
 
 English grammar lessons and practice - version 2.0.0
 
-**Built by** Tasmon Islam · tasmon@outlook.com
+<img width="808" height="916" alt="image" src="https://github.com/user-attachments/assets/83404221-5b74-439d-b1c7-df24165fc08b" />
+
 
 ## Highlights
 
@@ -19,7 +20,3 @@ npx serve .
 # or
 python3 -m http.server 3000
 ```
-
-## Deploy on Vercel
-
-Import this folder or run `npx vercel`.
