@@ -140,7 +140,8 @@ a{color:var(--p)}
   backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);
 }
-.logo{display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:1.1rem}
+.logo{display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:1.05rem}
+.logo-text{letter-spacing:-0.01em}
 .logo-mark{
   width:32px;height:32px;border-radius:8px;
   background:var(--p);
@@ -391,3 +392,10 @@ tr:hover td{background:color-mix(in srgb,var(--p) 4%,transparent)}
   .bottom-nav{display:none!important}
   .main{padding:1.15rem 1.35rem 1.75rem}
 }
+
+.logo-mark{width:32px;height:32px;padding:0;background:transparent;display:grid;place-items:center;overflow:hidden}
+.logo-mark svg{display:block;width:32px;height:32px}
+.logo-lg{width:72px!important;height:72px!important;margin:0 auto 1rem}
+.logo-lg svg{width:72px;height:72px}
+.game-card{border-color:color-mix(in srgb,var(--sec) 35%,var(--line))}
+.game-card .badge{display:inline-block}
