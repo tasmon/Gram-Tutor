@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "name": "gram-tutor",
+  "version": 2.0.0,
+  "name": "My Gramify",
   "builds": [
     { "src": "**", "use": "@vercel/static" }
   ],
