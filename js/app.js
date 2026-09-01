@@ -1,4 +1,4 @@
-/* Gramify App v1.3.0 */
+/* My Gramify App v2.0.0 */
 (function () {
   "use strict";
 
@@ -19,7 +19,7 @@
 
   function loadProgress() {
     try {
-      const r = localStorage.getItem("gramify_v2");
+      const r = localStorage.getItem("mygramify_v2");
       if (r) return JSON.parse(r);
     } catch (e) {}
     return {
@@ -32,12 +32,14 @@
       badges: {},
       favorites: [],
       verbStudy: false,
-      gamesPlayed: 0
+      gamesPlayed: 0,
+      topicStats: {},
+      reviewed: {}
     };
   }
 
   function save() {
-    localStorage.setItem("gramify_v2", JSON.stringify(state.progress));
+    localStorage.setItem("mygramify_v2", JSON.stringify(state.progress));
     updateXP();
   }
 
@@ -195,7 +197,7 @@
       '<div class="view">' +
       '<div class="hero">' +
       ("<h1>" + esc(homeGreeting()) + "</h1>") +
-      "<p>Ready to practise some grammar? Clear lessons, short quizzes, and a few games - at your own pace.</p>" +
+      "<p>Lessons, adaptive quizzes, and practice games. Progress stays on this device.</p>" +
       '<div class="hero-stats">' +
       '<div class="stat-chip"><b>' + L.length + "</b>Lessons</div>" +
       '<div class="stat-chip"><b>' + done + "</b>Done</div>" +
@@ -302,14 +304,30 @@
     );
   }
 
+  function enrichLessonContent(lesson) {
+    const c = lesson.content || {};
+    const exp = (window.LESSON_EXPANSIONS && window.LESSON_EXPANSIONS[lesson.id]) || window.DEFAULT_LESSON_EXPANSION || {};
+    const sections = (c.sections || []).slice();
+    (exp.extraSections || []).forEach(function (s) { sections.push(s); });
+    const tips = (c.tips || []).slice();
+    (exp.extraTips || []).forEach(function (tip) {
+      if (tips.indexOf(tip) < 0) tips.push(tip);
+    });
+    return { intro: c.intro || "", sections: sections, tips: tips };
+  }
+
   function viewLesson() {
     const lesson = (window.LESSONS || []).find((l) => l.id === state.lessonId);
     if (!lesson) return '<div class="empty">Lesson not found</div>';
-    const c = lesson.content;
+    const c = enrichLessonContent(lesson);
+    const wordCount = (c.intro + " " + c.sections.map(function (s) {
+      return s.title + " " + s.text + " " + (s.examples || []).map(function (e) { return e.correct + " " + (e.note || ""); }).join(" ");
+    }).join(" ") + " " + (c.tips || []).join(" ")).split(/\s+/).filter(Boolean).length;
     return (
       '<div class="view">' +
       '<button type="button" class="back" data-action="nav" data-view="lessons">← Back to lessons</button>' +
       badge(lesson.level) +
+      '<span class="muted" style="margin-left:.5rem;font-size:.8rem">~' + wordCount + " words</span>" +
       "<h1 style=\"font-size:1.4rem;margin:.4rem 0\">" +
       esc(lesson.title) +
       '</h1><p class="muted mb-2">' +
@@ -340,14 +358,14 @@
         )
         .join("") +
       (c.tips && c.tips.length
-        ? '<div class="tips mb-2"><h4>💡 Tips</h4><ul>' +
-          c.tips.map((t) => "<li>" + esc(t) + "</li>").join("") +
+        ? '<div class="tips mb-2"><h4>Tips</h4><ul>' +
+          c.tips.map((tip) => "<li>" + esc(tip) + "</li>").join("") +
           "</ul></div>"
         : "") +
       '<div class="flex gap-1 flex-wrap">' +
       '<button type="button" class="btn btn-p" data-action="lesson-quiz" data-id="' +
       lesson.id +
-      '">📝 Take Quiz</button>' +
+      '">Take quiz</button>' +
       '<button type="button" class="btn btn-s" data-action="complete-lesson" data-id="' +
       lesson.id +
       '">Mark complete (+15 XP)</button>' +
@@ -356,32 +374,62 @@
   }
 
   function viewPractice() {
+    const done = Object.keys(state.progress.completed || {}).length;
+    const bank = window.QuizGen ? window.QuizGen.BANK_SIZE : ((window.QUICK_QUIZZES || []).length + (window.HARD_QUIZZES || []).length);
+    const weak = window.QuizGen ? window.QuizGen.weakTopics(state.progress, 3) : [];
+    let adaptiveNote = done === 0
+      ? "Finish a lesson first - quizzes then adapt to what you have studied."
+      : "Questions adapt to your completed lessons" + (weak.length ? " and focus on weaker topics." : ".");
     return (
-      '<div class="view"><div class="h-sec" style="margin-top:0">Practice</div>' +
-      '<div class="grid grid-2">' +
+      '<div class="view">' +
+      '<div class="h-sec" style="margin-top:0">Practice</div>' +
+      '<p class="muted mb-2">' + adaptiveNote + ' Bank size: about ' + bank.toLocaleString() + ' generated questions.</p>' +
+      '<div class="h-sec">Quizzes</div>' +
+      '<div class="grid grid-2 keep-2 mb-2">' +
       [
-        ["quick-quiz", "⚡", "#3b5bdb", "Quick quiz", "10 mixed questions"],
-        ["mixed-quiz", "🎲", "#7048e8", "Longer quiz", "20 questions from the full bank"],
-        ["hard-quiz", "🔥", "#e03131", "Hard quiz", "Challenging B2-C1 questions"],
-        ["daily", "📅", "#e67700", "Today's five", "A short set for today"],
-        ["game-scramble", "🔤", "#0c8599", "Word order", "Put the words in the right order"],
-        ["game-fill", "✍️", "#2f9e44", "Fill the gap", "Type the missing form"],
-        ["game-error", "🔧", "#c92a2a", "Fix the sentence", "Correct the mistake"],
+        ["quick-quiz", "⚡", "Quick quiz", "10 questions matched to your progress"],
+        ["mixed-quiz", "🎲", "Longer quiz", "20 mixed questions from the big bank"],
+        ["hard-quiz", "🔥", "Hard quiz", "B2-C1 challenge set (15 questions)"],
+        ["daily", "📅", "Today's five", "A short daily set"],
+        ["review-quiz", "🔁", "Review weak areas", "Based on topics you miss most"],
+        ["lesson-practice", "📚", "From your lessons", "Only topics you have completed"]
       ]
-        .map(
-          (x) =>
+        .map(function (x) {
+          return (
             '<button type="button" class="card card-click" data-action="' +
             x[0] +
-            '"><div class="ticon" style="--cc:' +
-            x[2] +
-            '">' +
+            '"><div class="ticon">' +
             x[1] +
             "</div><strong>" +
-            x[3] +
+            x[2] +
             '</strong><div class="muted">' +
-            x[4] +
+            x[3] +
             "</div></button>"
-        )
+          );
+        })
+        .join("") +
+      "</div>" +
+      '<div class="h-sec">Games</div>' +
+      '<p class="muted mb-1">Short practice games - not multiple-choice quizzes.</p>' +
+      '<div class="grid grid-2 keep-2">' +
+      [
+        ["game-scramble", "🔤", "Word order", "Drag the words into a correct sentence"],
+        ["game-fill", "✍️", "Fill the gap", "Type the missing word or form"],
+        ["game-error", "🔧", "Error clinic", "Find and fix the mistake"]
+      ]
+        .map(function (x) {
+          return (
+            '<button type="button" class="card card-click game-card" data-action="' +
+            x[0] +
+            '"><div class="ticon">' +
+            x[1] +
+            "</div><strong>" +
+            x[2] +
+            '</strong><div class="muted">' +
+            x[3] +
+            '</div><span class="badge b-B1" style="margin-top:.4rem">Game</span></button>'
+          );
+        })
         .join("") +
       "</div></div>"
     );
@@ -460,6 +508,35 @@
         : "") +
       "</div></div>"
     );
+  }
+
+
+  function completedLessonTopics() {
+    const done = state.progress.completed || {};
+    const topics = [];
+    (window.LESSONS || []).forEach(function (l) {
+      if (done[l.id] && topics.indexOf(l.category) < 0) topics.push(l.category);
+      if (done[l.id] && topics.indexOf(l.id) < 0) topics.push(l.id);
+    });
+    return topics;
+  }
+
+  function startAdaptiveQuiz(count, difficulty, mode, topics, seed) {
+    let qs = [];
+    if (window.QuizGen) {
+      qs = window.QuizGen.sampleQuiz({
+        count: count,
+        difficulty: difficulty,
+        completed: state.progress.completed || {},
+        topics: topics || null,
+        seed: seed || (Date.now() % 100000)
+      });
+    }
+    if (!qs.length) {
+      const bank = (difficulty === "hard" ? window.HARD_QUIZZES : window.QUICK_QUIZZES) || [];
+      qs = bank.slice().sort(function () { return Math.random() - 0.5; }).slice(0, count);
+    }
+    startQuiz(qs, mode);
   }
 
   function startQuiz(qs, mode) {
@@ -778,13 +855,13 @@
   function viewAbout() {
     return (
       '<div class="view"><div class="card text-center" style="max-width:480px;margin:0 auto">' +
-      '<div class="logo-mark" style="width:64px;height:64px;font-size:1.8rem;margin:0 auto 1rem">G</div>' +
-      "<h1>Gramify</h1>" +
+      '<div class="logo-mark logo-lg" aria-hidden="true">G</div>' +
+      "<h1>My Gramify</h1>" +
       '<p class="muted mb-2">English grammar lessons and practice</p>' +
-      "<p>Lessons, quizzes, games, irregular verbs, a glossary, and flashcards. Progress is saved on this device.</p>" +
+      "<p>Lessons with fuller explanations, adaptive quizzes from a large question bank, and practice games. Progress is saved on this device.</p>" +
       '<p class="muted mt-1" style="font-size:.85rem">Tap the palette icon to try different themes.</p>' +
       '<p class="mt-2" style="display:inline-block;padding:.3rem .8rem;background:var(--elev);border-radius:99px;font-size:.85rem" class="muted">Version ' +
-      (window.APP_VERSION || "1.3.0") +
+      (window.APP_VERSION || "2.0.0") +
       "</p>" +
       '<hr style="border:none;border-top:1px solid var(--line);margin:1.25rem 0" />' +
       "<p><strong>Built by</strong><br>" +
@@ -965,23 +1042,32 @@
         break;
       }
       case "quick-quiz":
-        startQuiz((window.QUICK_QUIZZES || []).slice(0, 10), "quick");
+        startAdaptiveQuiz(10, "mixed", "quick");
         break;
       case "mixed-quiz":
-        startQuiz((window.QUICK_QUIZZES || []).slice(0, 20), "mixed");
+        startAdaptiveQuiz(20, "mixed", "mixed");
         break;
-      case "hard-quiz": {
-        const hard = (window.HARD_QUIZZES || window.QUICK_QUIZZES || []).slice();
-        startQuiz(hard.sort(function(){return Math.random()-0.5}).slice(0, 15), "hard");
+      case "hard-quiz":
+        startAdaptiveQuiz(15, "hard", "hard");
+        break;
+      case "review-quiz": {
+        const weak = window.QuizGen ? window.QuizGen.weakTopics(state.progress, 6) : [];
+        startAdaptiveQuiz(10, "mixed", "review", weak);
+        break;
+      }
+      case "lesson-practice": {
+        const topics = completedLessonTopics();
+        if (!topics.length) {
+          toast("Complete at least one lesson first");
+          break;
+        }
+        startAdaptiveQuiz(12, "mixed", "lesson-practice", topics);
         break;
       }
       case "daily": {
-        const day = new Date().toDateString();
-        const seed = day.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-        const all = window.QUICK_QUIZZES || [];
-        const pick = [];
-        for (let i = 0; i < 5 && all.length; i++) pick.push(all[(seed + i * 7) % all.length]);
-        startQuiz(pick, "daily");
+        const key = "daily-" + new Date().toISOString().slice(0, 10);
+        const seed = key.split("").reduce(function (a, c) { return a + c.charCodeAt(0); }, 0);
+        startAdaptiveQuiz(5, "mixed", "daily", null, seed);
         break;
       }
       case "answer": {
@@ -989,7 +1075,13 @@
         const i = parseInt(el.getAttribute("data-i"), 10);
         state.quiz.answered = true;
         state.quiz.chosen = i;
-        if (i === state.quiz.qs[state.quiz.i].answer) state.quiz.score++;
+        const curQ = state.quiz.qs[state.quiz.i];
+        const ok = i === curQ.answer;
+        if (ok) state.quiz.score++;
+        if (window.QuizGen && curQ.topic) {
+          window.QuizGen.recordAnswer(state.progress, curQ.topic, ok);
+        }
+        save();
         render();
         break;
       }
@@ -1004,6 +1096,8 @@
         else if (state.quiz.mode === "mixed") onAction("mixed-quiz", el);
         else if (state.quiz.mode === "hard") onAction("hard-quiz", el);
         else if (state.quiz.mode === "daily") onAction("daily", el);
+        else if (state.quiz.mode === "review") onAction("review-quiz", el);
+        else if (state.quiz.mode === "lesson-practice") onAction("lesson-practice", el);
         else if (String(state.quiz.mode).startsWith("lesson:")) {
           const id = state.quiz.mode.split(":")[1];
           const les = (window.LESSONS || []).find((l) => l.id === id);
