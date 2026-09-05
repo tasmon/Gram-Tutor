@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5" />
-  <meta name="description" content="My Gramify - English grammar lessons, adaptive quizzes, and practice games. Built by Tasmon Islam." />
-  <meta name="theme-color" content="#3b5bdb" />
+  <meta name="description" content="My Gramify - in-depth English grammar lessons, a placement test, adaptive quizzes with explanations, a mistake-review queue, and practice games. Built by Tasmon Islam." />
+  <meta name="theme-color" content="#4c63e8" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="My Gramify" />
@@ -22,18 +22,30 @@
     <header class="header">
       <button type="button" class="logo" data-nav="home" aria-label="Home">
         <span class="logo-mark" aria-hidden="true">
-          <svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
             <defs>
               <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#4c6ef5"/>
-                <stop offset="100%" stop-color="#3b5bdb"/>
+                <stop offset="0%" stop-color="#5b7cfa"/>
+                <stop offset="55%" stop-color="#4c63e8"/>
+                <stop offset="100%" stop-color="#3b46c9"/>
+              </linearGradient>
+              <linearGradient id="gs" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
               </linearGradient>
             </defs>
-            <rect width="40" height="40" rx="10" fill="url(#g)"/>
-            <text x="20" y="27" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" font-family="Inter,system-ui,sans-serif">G</text>
-            <rect x="24" y="26" width="9" height="7" rx="1.5" fill="#fff" opacity="0.95"/>
-            <line x1="25.5" y1="28.2" x2="31.5" y2="28.2" stroke="#3b5bdb" stroke-width="1.1"/>
-            <line x1="25.5" y1="30.2" x2="30" y2="30.2" stroke="#3b5bdb" stroke-width="1" opacity="0.7"/>
+            <rect x="1" y="1" width="62" height="62" rx="17" fill="url(#g)"/>
+            <rect x="1" y="1" width="62" height="30" rx="17" fill="url(#gs)"/>
+            <g transform="translate(32,34)">
+              <path d="M -20 -8 C -13 -12 -6 -12 0 -8 L 0 15 C -6 11 -13 11 -20 15 Z" fill="#fff" opacity="0.97"/>
+              <path d="M 20 -8 C 13 -12 6 -12 0 -8 L 0 15 C 6 11 13 11 20 15 Z" fill="#fff" opacity="0.88"/>
+              <path d="M -15.5 -3.4 C -10.5 -6 -5.5 -6 -1.8 -3.6" stroke="#4c63e8" stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.55"/>
+              <path d="M -15.5 2.6 C -10.5 0 -5.5 0 -1.8 2.4" stroke="#4c63e8" stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.55"/>
+              <path d="M 15.5 -3.4 C 10.5 -6 5.5 -6 1.8 -3.6" stroke="#4c63e8" stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.4"/>
+              <path d="M 15.5 2.6 C 10.5 0 5.5 0 1.8 2.4" stroke="#4c63e8" stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.4"/>
+            </g>
+            <circle cx="47.5" cy="18.5" r="11.5" fill="#22b25c" stroke="var(--card,#fff)" stroke-width="2.6"/>
+            <path d="M 42.3 18.7 L 46.1 22.4 L 53 15.2" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
         <span class="logo-text">My Gramify</span>
@@ -72,6 +84,7 @@
   </div>
 
   <script src="js/data.js"></script>
+  <script src="js/questionbank.js"></script>
   <script src="js/quizgen.js"></script>
   <script src="js/app.js"></script>
   <script>

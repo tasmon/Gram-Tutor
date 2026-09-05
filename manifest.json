@@ -1,12 +1,12 @@
 {
   "name": "My Gramify - English Grammar Practice",
   "short_name": "My Gramify",
-  "description": "English grammar lessons, adaptive quizzes from a 50,000-question bank, and practice games.",
+  "description": "56 in-depth grammar lessons, 5,000+ practice questions with explanations, a placement test, and practice games.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f5f6f8",
-  "theme_color": "#3b5bdb",
+  "theme_color": "#4c63e8",
   "orientation": "any",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

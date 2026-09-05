@@ -1,7 +1,7 @@
-const CACHE = 'mygramify-v2.0.0';
+const CACHE = 'mygramify-v3.1.0';
 const ASSETS = [
   './','./index.html','./css/styles.css',
-  './js/app.js','./js/data.js','./js/quizgen.js',
+  './js/app.js','./js/data.js','./js/questionbank.js','./js/quizgen.js',
   './manifest.json','./icons/icon-192.png','./icons/icon-512.png'
 ];
 self.addEventListener('install', e => {

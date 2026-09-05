@@ -1,17 +1,17 @@
 # My Gramify
 
-English grammar lessons and practice - version 2.0.0
-
-<img width="808" height="916" alt="image" src="https://github.com/user-attachments/assets/83404221-5b74-439d-b1c7-df24165fc08b" />
-
+English grammar lessons and practice - version 3.1.0
 
 ## Highlights
 
-- Adaptive quiz engine with a **50,000-question virtual bank**
-- Questions linked to **lesson progress** and weak topics
-- Clear **Quizzes** vs **Games** (word order, fill the gap, error clinic)
-- Expanded lesson text with richer examples
-- Themes, XP, streaks, badges, offline PWA
+- **56 in-depth lessons** covering everything from articles and tenses to inversion, cleft sentences, hedging, and register - the full span of a serious grammar reference, not just the basics
+- **5,000+ unique practice questions** with a short explanation for every answer, spanning 56 topics - deduplicated and checked programmatically, so no inflated or fake numbers
+- **Placement test** - a short, level-spread quiz that recommends where to start
+- **Mistake review queue** - anything you get wrong is saved and resurfaced until you get it right twice in a row
+- **Adaptive quizzes** that lean on your completed lessons and weaker topics
+- Three practice games: word order (scramble), fill the gap, and error clinic
+- Reference tools: 100+ irregular verbs (now quizzable too), a glossary, and flashcards
+- Redesigned logo, refreshed visuals, seven themes, XP, streaks, badges, and a fully offline PWA
 
 ## Run
 
