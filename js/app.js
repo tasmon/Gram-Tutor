@@ -1,9 +1,30 @@
-/* My Gramify App v2.0.0 */
+/* My Gramify App v3.1.0 */
 (function () {
   "use strict";
 
   const $ = (s, c) => (c || document).querySelector(s);
   const $$ = (s, c) => Array.from((c || document).querySelectorAll(s));
+
+  const LOGO_SVG =
+    '<svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true">' +
+    '<defs><linearGradient id="ga" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0%" stop-color="#5b7cfa"/><stop offset="55%" stop-color="#4c63e8"/><stop offset="100%" stop-color="#3b46c9"/>' +
+    '</linearGradient><linearGradient id="gsa" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>' +
+    "</linearGradient></defs>" +
+    '<rect x="1" y="1" width="62" height="62" rx="17" fill="url(#ga)"/>' +
+    '<rect x="1" y="1" width="62" height="30" rx="17" fill="url(#gsa)"/>' +
+    '<g transform="translate(32,34)">' +
+    '<path d="M -20 -8 C -13 -12 -6 -12 0 -8 L 0 15 C -6 11 -13 11 -20 15 Z" fill="#fff" opacity="0.97"/>' +
+    '<path d="M 20 -8 C 13 -12 6 -12 0 -8 L 0 15 C 6 11 13 11 20 15 Z" fill="#fff" opacity="0.88"/>' +
+    '<path d="M -15.5 -3.4 C -10.5 -6 -5.5 -6 -1.8 -3.6" stroke="#4c63e8" stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.55"/>' +
+    '<path d="M -15.5 2.6 C -10.5 0 -5.5 0 -1.8 2.4" stroke="#4c63e8" stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.55"/>' +
+    '<path d="M 15.5 -3.4 C 10.5 -6 5.5 -6 1.8 -3.6" stroke="#4c63e8" stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.4"/>' +
+    '<path d="M 15.5 2.6 C 10.5 0 5.5 0 1.8 2.4" stroke="#4c63e8" stroke-width="1.7" fill="none" stroke-linecap="round" opacity="0.4"/>' +
+    "</g>" +
+    '<circle cx="47.5" cy="18.5" r="11.5" fill="#22b25c" stroke="var(--card,#fff)" stroke-width="2.6"/>' +
+    '<path d="M 42.3 18.7 L 46.1 22.4 L 53 15.2" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+    "</svg>";
 
   const state = {
     view: "home",
@@ -34,7 +55,13 @@
       verbStudy: false,
       gamesPlayed: 0,
       topicStats: {},
-      reviewed: {}
+      reviewed: {},
+      missed: {},
+      answered: 0,
+      placementLevel: null,
+      seenQuestions: {},
+      seenFlashcards: {},
+      seenGameItems: {}
     };
   }
 
@@ -59,6 +86,11 @@
     if (p.streak >= 7) p.badges.streak_7 = true;
     if (p.verbStudy) p.badges.verbs = true;
     if (p.gamesPlayed >= 1) p.badges.games = true;
+    if (p.placementLevel) p.badges.placement_done = true;
+    if ((p.answered || 0) >= 100) p.badges.bank_explorer = true;
+    if (p._hadMissed && Object.keys(p.missed || {}).length === 0) p.badges.review_master = true;
+    if (Object.keys(p.missed || {}).length > 0) p._hadMissed = true;
+    if (new Date().getHours() >= 22 || new Date().getHours() < 5) p.badges.night_owl = true;
   }
 
   function touchStreak() {
@@ -375,23 +407,28 @@
 
   function viewPractice() {
     const done = Object.keys(state.progress.completed || {}).length;
-    const bank = window.QuizGen ? window.QuizGen.BANK_SIZE : ((window.QUICK_QUIZZES || []).length + (window.HARD_QUIZZES || []).length);
+    const info = window.QuizGen ? window.QuizGen.bankInfo() : { size: 0, topics: 0 };
     const weak = window.QuizGen ? window.QuizGen.weakTopics(state.progress, 3) : [];
+    const missedCount = window.QuizGen ? window.QuizGen.missedQuestions(state.progress).length : 0;
     let adaptiveNote = done === 0
       ? "Finish a lesson first - quizzes then adapt to what you have studied."
       : "Questions adapt to your completed lessons" + (weak.length ? " and focus on weaker topics." : ".");
     return (
       '<div class="view">' +
       '<div class="h-sec" style="margin-top:0">Practice</div>' +
-      '<p class="muted mb-2">' + adaptiveNote + ' Bank size: about ' + bank.toLocaleString() + ' generated questions.</p>' +
+      '<p class="muted mb-2">' + adaptiveNote + ' The bank has ' + info.size.toLocaleString() + ' distinct questions across ' + info.topics + ' grammar topics, each with a short explanation.</p>' +
+      '<div class="h-sec">Get started</div>' +
+      '<div class="grid grid-2 keep-2 mb-2">' +
+      '<button type="button" class="card card-click" data-action="placement-test"><div class="ticon">🧭</div><strong>Placement test</strong><div class="muted">18 questions - find your level</div></button>' +
+      '<button type="button" class="card card-click" data-action="review-quiz"><div class="ticon">🔁</div><strong>Review mistakes</strong><div class="muted">' + (missedCount ? missedCount + " question" + (missedCount === 1 ? "" : "s") + " to revisit" : "Nothing to review yet") + '</div></button>' +
+      '</div>' +
       '<div class="h-sec">Quizzes</div>' +
       '<div class="grid grid-2 keep-2 mb-2">' +
       [
         ["quick-quiz", "⚡", "Quick quiz", "10 questions matched to your progress"],
-        ["mixed-quiz", "🎲", "Longer quiz", "20 mixed questions from the big bank"],
+        ["mixed-quiz", "🎲", "Longer quiz", "20 mixed questions from the full bank"],
         ["hard-quiz", "🔥", "Hard quiz", "B2-C1 challenge set (15 questions)"],
         ["daily", "📅", "Today's five", "A short daily set"],
-        ["review-quiz", "🔁", "Review weak areas", "Based on topics you miss most"],
         ["lesson-practice", "📚", "From your lessons", "Only topics you have completed"]
       ]
         .map(function (x) {
@@ -440,11 +477,42 @@
     if (!qz || !qz.qs.length) return '<div class="empty">No questions</div>';
     if (qz.i >= qz.qs.length) {
       const pct = Math.round((qz.score / qz.qs.length) * 100);
-      state.progress.quizzes++;
-      state.progress.correct += qz.score;
-      if (pct === 100) state.progress.badges.perfect = true;
-      addXP(qz.score * 5 + (pct === 100 ? 20 : 0));
-      touchStreak();
+      if (qz.mode !== "placement") {
+        state.progress.quizzes++;
+        state.progress.correct += qz.score;
+        if (pct === 100) state.progress.badges.perfect = true;
+        addXP(qz.score * 5 + (pct === 100 ? 20 : 0));
+        touchStreak();
+      }
+      if (qz.mode === "placement") {
+        const byLevel = {};
+        qz.qs.forEach(function (q, idx) {
+          const lvl = q.level || "B1";
+          if (!byLevel[lvl]) byLevel[lvl] = { right: 0, total: 0 };
+          byLevel[lvl].total++;
+          if (qz.results && qz.results[idx]) byLevel[lvl].right++;
+        });
+        const suggested = window.QuizGen ? window.QuizGen.suggestLevel(byLevel) : "A2";
+        state.progress.placementLevel = suggested;
+        checkBadges();
+        addXP(30);
+        save();
+        return (
+          '<div class="view"><div class="card q-card text-center">' +
+          '<div class="score-big">' + suggested + '</div>' +
+          '<p style="font-size:1.1rem">' + qz.score + ' / ' + qz.qs.length + ' correct</p>' +
+          '<p class="muted mb-2">Based on your answers, ' + suggested + ' looks like a good place to focus. Lessons at or just above this level will stretch you without feeling overwhelming.</p>' +
+          '<div class="tbl-wrap mb-2"><table><thead><tr><th>Level</th><th>Score</th></tr></thead><tbody>' +
+          Object.keys(byLevel).sort().map(function (l) {
+            return "<tr><td>" + l + "</td><td>" + byLevel[l].right + " / " + byLevel[l].total + "</td></tr>";
+          }).join("") +
+          "</tbody></table></div>" +
+          '<div class="flex gap-1 flex-wrap" style="justify-content:center">' +
+          '<button type="button" class="btn btn-p" data-action="nav" data-view="lessons">Browse lessons</button>' +
+          '<button type="button" class="btn btn-s" data-action="nav" data-view="practice">Practice menu</button>' +
+          "</div></div></div>"
+        );
+      }
       return (
         '<div class="view"><div class="card q-card text-center">' +
         '<div class="score-big">' +
@@ -501,6 +569,7 @@
           (qz.chosen === cur.answer ? "ok" : "no") +
           '">' +
           (qz.chosen === cur.answer ? "Correct! 🎉" : "Answer: “" + esc(cur.options[cur.answer]) + "”") +
+          (cur.explain ? '<div class="fb-explain">' + esc(cur.explain) + "</div>" : "") +
           "</div>" +
           '<button type="button" class="btn btn-p btn-block mt-2" data-action="next-q">' +
           (qz.i + 1 === qz.qs.length ? "See results" : "Next →") +
@@ -521,32 +590,38 @@
     return topics;
   }
 
-  function startAdaptiveQuiz(count, difficulty, mode, topics, seed) {
+  function startAdaptiveQuiz(count, difficulty, mode, topics, seed, extra) {
     let qs = [];
     if (window.QuizGen) {
-      qs = window.QuizGen.sampleQuiz({
+      qs = window.QuizGen.sampleQuiz(Object.assign({
         count: count,
         difficulty: difficulty,
         completed: state.progress.completed || {},
         topics: topics || null,
+        excludeIds: state.progress.seenQuestions || {},
         seed: seed || (Date.now() % 100000)
-      });
+      }, extra || {}));
     }
     if (!qs.length) {
-      const bank = (difficulty === "hard" ? window.HARD_QUIZZES : window.QUICK_QUIZZES) || [];
-      qs = bank.slice().sort(function () { return Math.random() - 0.5; }).slice(0, count);
+      toast("Not enough questions found - try a different mode.");
+      return;
     }
-    startQuiz(qs, mode);
+    if (window.QuizGen && mode !== "review") {
+      window.QuizGen.markSeen(state.progress, qs.map((q) => q.id));
+      save();
+    }
+    startQuiz(qs, mode, mode === "quick" || mode === "mixed" || mode === "hard");
   }
 
-  function startQuiz(qs, mode) {
+  function startQuiz(qs, mode, keepOrder) {
     state.quiz = {
-      qs: qs.slice().sort(() => Math.random() - 0.5),
+      qs: keepOrder ? qs.slice() : qs.slice().sort(() => Math.random() - 0.5),
       i: 0,
       score: 0,
       answered: false,
       chosen: null,
-      mode: mode || "quick"
+      mode: mode || "quick",
+      results: []
     };
     state.view = "quiz";
     render();
@@ -562,7 +637,7 @@
   }
 
   function viewScramble(g) {
-    const list = window.SCRAMBLE_SENTENCES || [];
+    const list = g.order || [];
     if (g.i >= list.length) {
       state.progress.gamesPlayed++;
       addXP(g.score * 8);
@@ -637,7 +712,7 @@
   }
 
   function viewFill(g) {
-    const list = window.FILL_BLANKS || [];
+    const list = g.order || [];
     if (g.i >= list.length) {
       state.progress.gamesPlayed++;
       addXP(g.score * 8);
@@ -674,7 +749,7 @@
   }
 
   function viewError(g) {
-    const list = window.ERROR_FIX || [];
+    const list = g.order || [];
     if (g.i >= list.length) {
       state.progress.gamesPlayed++;
       addXP(g.score * 10);
@@ -739,7 +814,7 @@
         "</div>";
     } else if (tab === "flash") {
       if (!state.flash.list.length) {
-        state.flash.list = (window.FLASHCARDS || []).slice().sort(() => Math.random() - 0.5);
+        state.flash.list = newFlashBatch(30);
         state.flash.i = 0;
         state.flash.show = false;
       }
@@ -756,7 +831,7 @@
           '<button type="button" class="btn btn-s" data-action="flash-prev">← Prev</button>' +
           '<button type="button" class="btn btn-p" data-action="flip-flash">Flip</button>' +
           '<button type="button" class="btn btn-s" data-action="flash-next">Next →</button>' +
-          "</div>"
+          '</div><p class="text-center mt-1"><button type="button" class="btn btn-ghost btn-sm" data-action="flash-shuffle">🔀 New batch</button></p>'
         : '<div class="empty">No cards</div>';
     }
     return (
@@ -855,22 +930,23 @@
   function viewAbout() {
     return (
       '<div class="view"><div class="card text-center" style="max-width:480px;margin:0 auto">' +
-      '<div class="logo-mark logo-lg" aria-hidden="true">G</div>' +
+      '<div class="logo-mark logo-lg" aria-hidden="true">' + LOGO_SVG + "</div>" +
       "<h1>My Gramify</h1>" +
-      '<p class="muted mb-2">English grammar lessons and practice</p>' +
-      "<p>Lessons with fuller explanations, adaptive quizzes from a large question bank, and practice games. Progress is saved on this device.</p>" +
-      '<p class="muted mt-1" style="font-size:.85rem">Tap the palette icon to try different themes.</p>' +
+      '<p class="muted mb-2">A grammar app built to actually be used, not just downloaded.</p>' +
+      '<p style="text-align:left">I got tired of grammar apps that run out of content fast or lock explanations behind a subscription, so I built the one I wanted to use myself.</p>' +
+      '<p class="mt-1" style="text-align:left">Not sure where to start? Try the placement test. Anything you get wrong is quietly saved and comes back around later - that\'s usually where the real learning happens.</p>' +
+      '<p class="mt-1" style="text-align:left">Everything stays on this device: no account, no ads, works offline.</p>' +
       '<p class="mt-2" style="display:inline-block;padding:.3rem .8rem;background:var(--elev);border-radius:99px;font-size:.85rem" class="muted">Version ' +
-      (window.APP_VERSION || "2.0.0") +
+      (window.APP_VERSION || "3.1.0") +
       "</p>" +
       '<hr style="border:none;border-top:1px solid var(--line);margin:1.25rem 0" />' +
-      "<p><strong>Built by</strong><br>" +
+      '<p style="text-align:left"><strong>Developer:</strong> ' +
       esc((window.DEVELOPER || {}).name || "Tasmon Islam") +
-      '</p><p class="mt-1"><a href="mailto:' +
+      '<br><strong>Email:</strong> <a href="mailto:' +
       esc((window.DEVELOPER || {}).email || "tasmon@outlook.com") +
       '">' +
       esc((window.DEVELOPER || {}).email || "tasmon@outlook.com") +
-      '</a></p></div></div>'
+      "</a></p></div></div>"
     );
   }
 
@@ -958,9 +1034,68 @@
     return a.slice().sort(() => Math.random() - 0.5);
   }
 
+  function startGameSession(rawList, typeKey, roundSize) {
+    if (!state.progress.seenGameItems) state.progress.seenGameItems = {};
+    const seen = state.progress.seenGameItems[typeKey] || {};
+    const withIdx = rawList.map((item, idx) => ({ item, idx }));
+    const unseen = withIdx.filter((x) => !seen[x.idx]);
+    const source = unseen.length >= Math.min(roundSize, rawList.length) ? unseen : withIdx;
+    const picked = shuffle(source).slice(0, Math.min(roundSize, rawList.length));
+    const usedSeen = Object.assign({}, seen);
+    picked.forEach((x) => {
+      usedSeen[x.idx] = true;
+    });
+    if (Object.keys(usedSeen).length >= rawList.length) {
+      state.progress.seenGameItems[typeKey] = {};
+    } else {
+      state.progress.seenGameItems[typeKey] = usedSeen;
+    }
+    save();
+    return picked.map((x) => x.item);
+  }
+
+  let _flashPoolCache = null;
+  function buildFlashcardPool() {
+    if (_flashPoolCache) return _flashPoolCache;
+    const concept = (window.FLASHCARDS || []).map((c, i) => ({
+      id: "c" + i,
+      front: c.front,
+      back: c.back
+    }));
+    const bankQs = window.QuizGen ? window.QuizGen.allQuestions() : (window.QUESTION_BANK || []);
+    const practice = bankQs.map((q) => ({
+      id: "q" + q.id,
+      front: q.q,
+      back: q.options[q.answer] + (q.explain ? " — " + q.explain : "")
+    }));
+    _flashPoolCache = concept.concat(practice);
+    return _flashPoolCache;
+  }
+
+  function newFlashBatch(size) {
+    const pool = buildFlashcardPool();
+    if (!state.progress.seenFlashcards) state.progress.seenFlashcards = {};
+    const seen = state.progress.seenFlashcards;
+    const unseen = pool.filter((c) => !seen[c.id]);
+    const source = unseen.length >= Math.min(size, pool.length) ? unseen : pool;
+    const picked = shuffle(source).slice(0, Math.min(size, pool.length));
+    const usedSeen = source === pool ? {} : Object.assign({}, seen);
+    picked.forEach((c) => {
+      usedSeen[c.id] = true;
+    });
+    if (Object.keys(usedSeen).length >= pool.length) {
+      state.progress.seenFlashcards = {};
+    } else {
+      state.progress.seenFlashcards = usedSeen;
+    }
+    save();
+    return picked;
+  }
+
+
   function handleCheckFill() {
     const g = state.game;
-    const list = window.FILL_BLANKS || [];
+    const list = g.order || [];
     const item = list[g.i];
     const input = $("#fillIn");
     if (!input || !item) return;
@@ -987,7 +1122,7 @@
 
   function handleCheckError() {
     const g = state.game;
-    const list = window.ERROR_FIX || [];
+    const list = g.order || [];
     const item = list[g.i];
     const input = $("#fillIn");
     if (!input || !item) return;
@@ -1050,9 +1185,30 @@
       case "hard-quiz":
         startAdaptiveQuiz(15, "hard", "hard");
         break;
+      case "placement-test": {
+        const seed = Date.now() % 100000;
+        const qs = window.QuizGen ? window.QuizGen.placementTest(seed, state.progress.seenQuestions || {}) : [];
+        if (qs.length) {
+          if (window.QuizGen) {
+            window.QuizGen.markSeen(state.progress, qs.map((q) => q.id));
+            save();
+          }
+          startQuiz(qs, "placement", true);
+        }
+        break;
+      }
       case "review-quiz": {
-        const weak = window.QuizGen ? window.QuizGen.weakTopics(state.progress, 6) : [];
-        startAdaptiveQuiz(10, "mixed", "review", weak);
+        const missedIds = window.QuizGen ? window.QuizGen.missedQuestions(state.progress) : [];
+        if (missedIds.length) {
+          startAdaptiveQuiz(Math.min(12, missedIds.length), "mixed", "review", null, null, { forceIds: missedIds });
+        } else {
+          const weak = window.QuizGen ? window.QuizGen.weakTopics(state.progress, 6) : [];
+          if (!weak.length) {
+            toast("No mistakes to review yet - take a quiz first!");
+            break;
+          }
+          startAdaptiveQuiz(10, "mixed", "review", weak);
+        }
         break;
       }
       case "lesson-practice": {
@@ -1078,9 +1234,11 @@
         const curQ = state.quiz.qs[state.quiz.i];
         const ok = i === curQ.answer;
         if (ok) state.quiz.score++;
+        state.quiz.results[state.quiz.i] = ok;
         if (window.QuizGen && curQ.topic) {
-          window.QuizGen.recordAnswer(state.progress, curQ.topic, ok);
+          window.QuizGen.recordAnswer(state.progress, curQ.topic, ok, curQ.id);
         }
+        checkBadges();
         save();
         render();
         break;
@@ -1097,6 +1255,7 @@
         else if (state.quiz.mode === "hard") onAction("hard-quiz", el);
         else if (state.quiz.mode === "daily") onAction("daily", el);
         else if (state.quiz.mode === "review") onAction("review-quiz", el);
+        else if (state.quiz.mode === "placement") onAction("placement-test", el);
         else if (state.quiz.mode === "lesson-practice") onAction("lesson-practice", el);
         else if (String(state.quiz.mode).startsWith("lesson:")) {
           const id = state.quiz.mode.split(":")[1];
@@ -1105,17 +1264,26 @@
         }
         break;
       case "game-scramble":
-        state.game = { type: "scramble", i: 0, score: 0, cur: null, sel: [] };
+        state.game = {
+          type: "scramble", i: 0, score: 0, cur: null, sel: [],
+          order: startGameSession(window.SCRAMBLE_SENTENCES || [], "scramble", 15)
+        };
         state.view = "game";
         render();
         break;
       case "game-fill":
-        state.game = { type: "fill", i: 0, score: 0 };
+        state.game = {
+          type: "fill", i: 0, score: 0,
+          order: startGameSession(window.FILL_BLANKS || [], "fill", 15)
+        };
         state.view = "game";
         render();
         break;
       case "game-error":
-        state.game = { type: "error", i: 0, score: 0 };
+        state.game = {
+          type: "error", i: 0, score: 0,
+          order: startGameSession(window.ERROR_FIX || [], "error", 12)
+        };
         state.view = "game";
         render();
         break;
@@ -1175,12 +1343,23 @@
         render();
         break;
       case "flash-next":
-        state.flash.i = Math.min(state.flash.list.length - 1, state.flash.i + 1);
+        if (state.flash.i + 1 >= state.flash.list.length) {
+          state.flash.list = newFlashBatch(30);
+          state.flash.i = 0;
+        } else {
+          state.flash.i++;
+        }
         state.flash.show = false;
         render();
         break;
       case "flash-prev":
         state.flash.i = Math.max(0, state.flash.i - 1);
+        state.flash.show = false;
+        render();
+        break;
+      case "flash-shuffle":
+        state.flash.list = newFlashBatch(30);
+        state.flash.i = 0;
         state.flash.show = false;
         render();
         break;
@@ -1211,7 +1390,15 @@
             badges: {},
             favorites: [],
             verbStudy: false,
-            gamesPlayed: 0
+            gamesPlayed: 0,
+            topicStats: {},
+            reviewed: {},
+            missed: {},
+            answered: 0,
+            placementLevel: null,
+            seenQuestions: {},
+            seenFlashcards: {},
+            seenGameItems: {}
           };
           save();
           toast("Progress reset");
