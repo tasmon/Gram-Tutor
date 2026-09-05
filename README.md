@@ -2,6 +2,9 @@
 
 English grammar lessons and practice - version 3.1.0
 
+<img width="894" height="929" alt="image" src="https://github.com/user-attachments/assets/344ffeb3-76b8-4fe0-9289-13a288104f17" />
+
+
 ## Highlights
 
 - **56 in-depth lessons** covering everything from articles and tenses to inversion, cleft sentences, hedging, and register - the full span of a serious grammar reference, not just the basics
